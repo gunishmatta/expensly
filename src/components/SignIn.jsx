@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Avatar,
   Grid,
@@ -11,8 +11,43 @@ import {
 } from "@material-ui/core";
 import { useStyles } from "../styles";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import { useInput } from "../hooks/useInput";
+import { getFirebase } from "../hooks/firebase";
+import { useHistory } from "react-router-dom";
+
 const SignIn = () => {
   const classes = useStyles();
+  const firebaseInstance = getFirebase();
+  const email = useInput("");
+  const password = useInput("");
+
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const doSignIn = async (event) => {
+    event.preventDefault();
+    try {
+      if (firebaseInstance) {
+        const user = await firebaseInstance
+          .auth()
+          .signInWithEmailAndPassword(email.value, password.value);
+      }
+    } catch (error) {
+      console.log("error ", error);
+    }
+  };
+
+  useEffect(() => {
+    const firebase = getFirebase();
+    if (firebase) {
+      firebase.auth().onAuthStateChanged((authUser) => {
+        if (authUser) {
+          setCurrentUser(authUser);
+        } else {
+          setCurrentUser(null);
+        }
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -56,6 +91,7 @@ const SignIn = () => {
             variant="contained"
             color="primary"
             className={classes.submit}
+            onClick={doSignIn}
           >
             Sign In
           </Button>
